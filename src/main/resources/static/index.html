@@ -772,7 +772,10 @@
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const API = 'http://localhost:8080/api';
+// Auto-detects: uses current domain in production, localhost in dev
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:8080/api'
+  : window.location.origin + '/api';
 let currentPage = 'dashboard';
 
 // ==========================================
