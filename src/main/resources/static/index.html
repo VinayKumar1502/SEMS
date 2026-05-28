@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #22263a;
+            --border: #2e3350;
+            --accent: #4f8ef7;
+            --accent2: #a78bfa;
+            --green: #34d399;
+            --yellow: #fbbf24;
+            --red: #f87171;
+            --orange: #fb923c;
+            --text: #e2e8f0;
+            --muted: #6b7280;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+        .sidebar-logo {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo h1 {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .sidebar-logo p { font-size: 11px; color: var(--muted); margin-top: 4px; }
+        .nav-section { padding: 16px 12px 8px; }
+        .nav-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; padding: 0 8px 8px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--muted);
+            transition: all 0.15s;
+            margin-bottom: 2px;
+        }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(79,142,247,0.12); color: var(--accent); }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--muted);
+        }
+        .sidebar-footer code {
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--green);
+            font-size: 11px;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main {
+            margin-left: 240px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .topbar h2 { font-size: 18px; font-weight: 600; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 500;
+            transition: all 0.15s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #3b7de8; transform: translateY(-1px); }
+        .btn-danger { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+        .btn-danger:hover { background: rgba(248,113,113,0.25); }
+        .btn-edit { background: rgba(79,142,247,0.12); color: var(--accent); border: 1px solid rgba(79,142,247,0.3); }
+        .btn-edit:hover { background: rgba(79,142,247,0.22); }
+        .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+
+        .content { padding: 28px; flex: 1; }
+
+        /* ===== STATS CARDS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .stat-value { font-size: 32px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+        .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .stat-card.blue .stat-value { color: var(--accent); }
+        .stat-card.green .stat-value { color: var(--green); }
+        .stat-card.yellow .stat-value { color: var(--yellow); }
+        .stat-card.red .stat-value { color: var(--red); }
+
+        /* ===== SEARCH + FILTER BAR ===== */
+        .toolbar {
+            display: flex; gap: 12px; align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px 10px 40px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .search-box input:focus { outline: none; border-color: var(--accent); }
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 12px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--surface2); }
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        td {
+            padding: 14px 16px;
+            font-size: 13px;
+            border-top: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .name-cell { font-weight: 600; color: var(--white); }
+        .mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+        .actions { display: flex; gap: 6px; }
+
+        /* ===== STATUS BADGE ===== */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-active { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+        .badge-inactive { background: rgba(107,114,128,0.15); color: var(--muted); border: 1px solid rgba(107,114,128,0.3); }
+        .badge-graduated { background: rgba(167,139,250,0.12); color: var(--accent2); border: 1px solid rgba(167,139,250,0.3); }
+        .badge-on_leave { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+        .badge-terminated { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+        .badge-suspended { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.3); }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 640px;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { font-size: 16px; font-weight: 600; }
+        .modal-close {
+            background: none; border: none; color: var(--muted);
+            font-size: 20px; cursor: pointer; padding: 0 4px;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal-body { padding: 20px 24px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.5px; }
+        .form-group input, .form-group select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group select option { background: var(--surface2); }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* ===== TOAST ===== */
+        #toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 20px;
+            font-size: 14px;
+            display: none;
+            z-index: 999;
+            min-width: 280px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        #toast.show { display: block; animation: slideIn 0.3s ease; }
+        #toast.success { border-color: var(--green); }
+        #toast.error { border-color: var(--red); }
+        @keyframes slideIn { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ===== PAGE SECTIONS ===== */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+        .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        /* ===== API INFO ===== */
+        .api-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+        .api-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--accent); }
+        .api-endpoint {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .api-endpoint:last-child { border-bottom: none; }
+        .method {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            min-width: 52px;
+            text-align: center;
+        }
+        .method.get { background: rgba(52,211,153,0.15); color: var(--green); }
+        .method.post { background: rgba(79,142,247,0.15); color: var(--accent); }
+        .method.put { background: rgba(251,191,36,0.15); color: var(--yellow); }
+        .method.delete { background: rgba(248,113,113,0.15); color: var(--red); }
+        .api-path { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text); }
+        .api-desc { color: var(--muted); font-size: 12px; margin-left: auto; }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <h1>MGT SYS</h1>
+        <p>Management System v1.0</p>
+    </div>
+    <nav class="nav-section">
+        <div class="nav-label">Dashboard</div>
+        <div class="nav-item active" onclick="navigate('dashboard')">
+            <span class="icon">📊</span> Overview
+        </div>
+    </nav>
+    <nav class="nav-section">
+        <div class="nav-label">Students</div>
+        <div class="nav-item" onclick="navigate('students')">
+            <span class="icon">🎓</span> All Students
+        </div>
+    </nav>
+    <nav class="nav-section">
+        <div class="nav-label">Employees</div>
+        <div class="nav-item" onclick="navigate('employees')">
+            <span class="icon">💼</span> All Employees
+        </div>
+    </nav>
+    <nav class="nav-section">
+        <div class="nav-label">Developer</div>
+        <div class="nav-item" onclick="navigate('api')">
+            <span class="icon">🔌</span> API Reference
+        </div>
+    </nav>
+    <div class="sidebar-footer">
+        <p>Backend: <code>localhost:8080</code></p>
+        <p style="margin-top:6px">DB Console: <code>/h2-console</code></p>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <h2 id="pageTitle">📊 Dashboard Overview</h2>
+        <div class="topbar-actions">
+            <button class="btn btn-primary" id="addBtn" onclick="openAddModal()" style="display:none">
+                ➕ Add New
+            </button>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- ===== DASHBOARD PAGE ===== -->
+        <div id="page-dashboard" class="page active">
+            <div class="stats-grid" id="dashStats">
+                <div class="stat-card blue">
+                    <div class="stat-label">Total Students</div>
+                    <div class="stat-value" id="ds-totalStudents">—</div>
+                    <div class="stat-sub">Enrolled in system</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-label">Active Students</div>
+                    <div class="stat-value" id="ds-activeStudents">—</div>
+                    <div class="stat-sub">Currently studying</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-label">Total Employees</div>
+                    <div class="stat-value" id="ds-totalEmployees">—</div>
+                    <div class="stat-sub">In organization</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-label">Active Employees</div>
+                    <div class="stat-value" id="ds-activeEmployees">—</div>
+                    <div class="stat-sub">Currently working</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                <div class="table-wrapper">
+                    <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px">
+                        🎓 Recent Students
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Name</th><th>Course</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="recentStudents"></tbody>
+                    </table>
+                </div>
+                <div class="table-wrapper">
+                    <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px">
+                        💼 Recent Employees
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Name</th><th>Department</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="recentEmployees"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== STUDENTS PAGE ===== -->
+        <div id="page-students" class="page">
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="stat-label">Total</div>
+                    <div class="stat-value" id="st-total">—</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value" id="st-active">—</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-label">Inactive</div>
+                    <div class="stat-value" id="st-inactive">—</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-label">Graduated</div>
+                    <div class="stat-value" id="st-graduated">—</div>
+                </div>
+            </div>
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="studentSearch" placeholder="Search by name or email..." oninput="searchStudents()">
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Name</th><th>Email</th><th>Course</th>
+                            <th>Year</th><th>GPA</th><th>Status</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== EMPLOYEES PAGE ===== -->
+        <div id="page-employees" class="page">
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="stat-label">Total</div>
+                    <div class="stat-value" id="em-total">—</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value" id="em-active">—</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-label">On Leave</div>
+                    <div class="stat-value" id="em-onLeave">—</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-label">Inactive</div>
+                    <div class="stat-value" id="em-inactive">—</div>
+                </div>
+            </div>
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="employeeSearch" placeholder="Search by name, email, or department..." oninput="searchEmployees()">
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Name</th><th>Email</th><th>Department</th>
+                            <th>Position</th><th>Salary</th><th>Status</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== API REFERENCE PAGE ===== -->
+        <div id="page-api" class="page">
+            <div class="api-card">
+                <h3>🎓 Student API Endpoints</h3>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/students</span>
+                    <span class="api-desc">Get all students</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/students/{id}</span>
+                    <span class="api-desc">Get student by ID</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/students/search?keyword=xyz</span>
+                    <span class="api-desc">Search students</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/students/stats</span>
+                    <span class="api-desc">Get statistics</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method post">POST</span>
+                    <span class="api-path">/api/students</span>
+                    <span class="api-desc">Create new student</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method put">PUT</span>
+                    <span class="api-path">/api/students/{id}</span>
+                    <span class="api-desc">Update student</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method delete">DELETE</span>
+                    <span class="api-path">/api/students/{id}</span>
+                    <span class="api-desc">Delete student</span>
+                </div>
+            </div>
+
+            <div class="api-card">
+                <h3>💼 Employee API Endpoints</h3>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/employees</span>
+                    <span class="api-desc">Get all employees</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/employees/{id}</span>
+                    <span class="api-desc">Get employee by ID</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/employees/search?keyword=xyz</span>
+                    <span class="api-desc">Search employees</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method get">GET</span>
+                    <span class="api-path">/api/employees/stats</span>
+                    <span class="api-desc">Get statistics</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method post">POST</span>
+                    <span class="api-path">/api/employees</span>
+                    <span class="api-desc">Create new employee</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method put">PUT</span>
+                    <span class="api-path">/api/employees/{id}</span>
+                    <span class="api-desc">Update employee</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="method delete">DELETE</span>
+                    <span class="api-path">/api/employees/{id}</span>
+                    <span class="api-desc">Delete employee</span>
+                </div>
+            </div>
+
+            <div class="api-card">
+                <h3>📝 Sample JSON - Create Student (POST /api/students)</h3>
+                <pre style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--green);overflow-x:auto">{
+  "firstName": "Rahul",
+  "lastName": "Sharma",
+  "email": "rahul.sharma@college.edu",
+  "phone": "9876543210",
+  "dateOfBirth": "2002-05-15",
+  "course": "Computer Science",
+  "year": 3,
+  "gpa": 8.5,
+  "address": "Hyderabad, Telangana",
+  "status": "ACTIVE",
+  "enrollmentDate": "2021-07-10"
+}</pre>
+            </div>
+        </div>
+
+    </div><!-- /content -->
+</main>
+
+<!-- ===== STUDENT MODAL ===== -->
+<div class="modal-overlay" id="studentModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="studentModalTitle">Add Student</h3>
+            <button class="modal-close" onclick="closeModal('studentModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <form class="form-grid" onsubmit="return false;">
+                <input type="hidden" id="s-id">
+                <div class="form-group">
+                    <label>FIRST NAME *</label>
+                    <input type="text" id="s-firstName" placeholder="Rahul">
+                </div>
+                <div class="form-group">
+                    <label>LAST NAME *</label>
+                    <input type="text" id="s-lastName" placeholder="Sharma">
+                </div>
+                <div class="form-group">
+                    <label>EMAIL *</label>
+                    <input type="email" id="s-email" placeholder="rahul@college.edu">
+                </div>
+                <div class="form-group">
+                    <label>PHONE (10 digits)</label>
+                    <input type="text" id="s-phone" placeholder="9876543210" maxlength="10">
+                </div>
+                <div class="form-group">
+                    <label>DATE OF BIRTH</label>
+                    <input type="date" id="s-dob">
+                </div>
+                <div class="form-group">
+                    <label>COURSE *</label>
+                    <input type="text" id="s-course" placeholder="Computer Science">
+                </div>
+                <div class="form-group">
+                    <label>YEAR (1-6)</label>
+                    <input type="number" id="s-year" min="1" max="6" placeholder="3">
+                </div>
+                <div class="form-group">
+                    <label>GPA (0-10)</label>
+                    <input type="number" id="s-gpa" min="0" max="10" step="0.1" placeholder="8.5">
+                </div>
+                <div class="form-group">
+                    <label>STATUS</label>
+                    <select id="s-status">
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="GRADUATED">Graduated</option>
+                        <option value="SUSPENDED">Suspended</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ENROLLMENT DATE</label>
+                    <input type="date" id="s-enrollDate">
+                </div>
+                <div class="form-group full">
+                    <label>ADDRESS</label>
+                    <input type="text" id="s-address" placeholder="City, State">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('studentModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== EMPLOYEE MODAL ===== -->
+<div class="modal-overlay" id="employeeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="employeeModalTitle">Add Employee</h3>
+            <button class="modal-close" onclick="closeModal('employeeModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <form class="form-grid" onsubmit="return false;">
+                <input type="hidden" id="e-id">
+                <div class="form-group">
+                    <label>FIRST NAME *</label>
+                    <input type="text" id="e-firstName" placeholder="Suresh">
+                </div>
+                <div class="form-group">
+                    <label>LAST NAME *</label>
+                    <input type="text" id="e-lastName" placeholder="Kumar">
+                </div>
+                <div class="form-group">
+                    <label>EMAIL *</label>
+                    <input type="email" id="e-email" placeholder="suresh@company.com">
+                </div>
+                <div class="form-group">
+                    <label>PHONE (10 digits)</label>
+                    <input type="text" id="e-phone" placeholder="9123456780" maxlength="10">
+                </div>
+                <div class="form-group">
+                    <label>DATE OF BIRTH</label>
+                    <input type="date" id="e-dob">
+                </div>
+                <div class="form-group">
+                    <label>DEPARTMENT *</label>
+                    <input type="text" id="e-department" placeholder="Engineering">
+                </div>
+                <div class="form-group">
+                    <label>POSITION *</label>
+                    <input type="text" id="e-position" placeholder="Senior Developer">
+                </div>
+                <div class="form-group">
+                    <label>SALARY (₹/month)</label>
+                    <input type="number" id="e-salary" min="0" placeholder="75000">
+                </div>
+                <div class="form-group">
+                    <label>STATUS</label>
+                    <select id="e-status">
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="ON_LEAVE">On Leave</option>
+                        <option value="TERMINATED">Terminated</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>JOINING DATE</label>
+                    <input type="date" id="e-joinDate">
+                </div>
+                <div class="form-group">
+                    <label>MANAGER</label>
+                    <input type="text" id="e-manager" placeholder="Manager name">
+                </div>
+                <div class="form-group">
+                    <label>ADDRESS</label>
+                    <input type="text" id="e-address" placeholder="City, State">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('employeeModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEmployee()">Save Employee</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast"></div>
+
+<script>
+// ==========================================
+// CONFIGURATION
+// ==========================================
+const API = 'http://localhost:8080/api';
+let currentPage = 'dashboard';
+
+// ==========================================
+// NAVIGATION
+// ==========================================
+function navigate(page) {
+    currentPage = page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.getAttribute('onclick')?.includes(page)) n.classList.add('active');
+    });
+
+    const titles = {
+        dashboard: '📊 Dashboard Overview',
+        students: '🎓 Student Management',
+        employees: '💼 Employee Management',
+        api: '🔌 API Reference'
+    };
+    document.getElementById('pageTitle').textContent = titles[page];
+    document.getElementById('addBtn').style.display = (page === 'students' || page === 'employees') ? 'flex' : 'none';
+
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'students') loadStudents();
+    if (page === 'employees') loadEmployees();
+}
+
+// ==========================================
+// API HELPER - Fetch with error handling
+// ==========================================
+async function apiFetch(url, options = {}) {
+    try {
+        const res = await fetch(API + url, {
+            headers: { 'Content-Type': 'application/json' },
+            ...options
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.message || 'Request failed');
+        }
+        return await res.json();
+    } catch (e) {
+        if (e.message.includes('fetch')) {
+            throw new Error('Cannot connect to backend. Make sure Spring Boot is running on port 8080.');
+        }
+        throw e;
+    }
+}
+
+// ==========================================
+// TOAST NOTIFICATIONS
+// ==========================================
+function showToast(message, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = (type === 'success' ? '✅ ' : '❌ ') + message;
+    t.className = 'show ' + type;
+    setTimeout(() => t.className = '', 3000);
+}
+
+// ==========================================
+// STATUS BADGE HELPER
+// ==========================================
+function badge(status) {
+    const cls = 'badge badge-' + status.toLowerCase().replace(' ', '_');
+    return `<span class="${cls}">${status}</span>`;
+}
+
+// ==========================================
+// DASHBOARD
+// ==========================================
+async function loadDashboard() {
+    try {
+        const [sStats, eStats, students, employees] = await Promise.all([
+            apiFetch('/students/stats'),
+            apiFetch('/employees/stats'),
+            apiFetch('/students'),
+            apiFetch('/employees')
+        ]);
+
+        document.getElementById('ds-totalStudents').textContent = sStats.total;
+        document.getElementById('ds-activeStudents').textContent = sStats.active;
+        document.getElementById('ds-totalEmployees').textContent = eStats.total;
+        document.getElementById('ds-activeEmployees').textContent = eStats.active;
+
+        const rs = document.getElementById('recentStudents');
+        rs.innerHTML = students.slice(0, 5).map(s => `
+            <tr>
+                <td class="name-cell">${s.firstName} ${s.lastName}</td>
+                <td>${s.course}</td>
+                <td>${badge(s.status)}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="3" class="empty-state"><p>No students yet</p></td></tr>';
+
+        const re = document.getElementById('recentEmployees');
+        re.innerHTML = employees.slice(0, 5).map(e => `
+            <tr>
+                <td class="name-cell">${e.firstName} ${e.lastName}</td>
+                <td>${e.department}</td>
+                <td>${badge(e.status)}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="3" class="empty-state"><p>No employees yet</p></td></tr>';
+
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ==========================================
+// STUDENTS
+// ==========================================
+async function loadStudents() {
+    try {
+        const [stats, students] = await Promise.all([
+            apiFetch('/students/stats'),
+            apiFetch('/students')
+        ]);
+
+        document.getElementById('st-total').textContent = stats.total;
+        document.getElementById('st-active').textContent = stats.active;
+        document.getElementById('st-inactive').textContent = stats.inactive;
+        document.getElementById('st-graduated').textContent = stats.graduated;
+
+        renderStudentsTable(students);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function renderStudentsTable(students) {
+    const tbody = document.getElementById('studentsTable');
+    if (!students.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">🎓</div><p>No students found. Add one!</p></div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = students.map(s => `
+        <tr>
+            <td class="mono">#${s.id}</td>
+            <td class="name-cell">${s.firstName} ${s.lastName}</td>
+            <td class="mono">${s.email}</td>
+            <td>${s.course || '—'}</td>
+            <td class="mono">${s.year ? 'Year ' + s.year : '—'}</td>
+            <td class="mono">${s.gpa != null ? s.gpa.toFixed(1) : '—'}</td>
+            <td>${badge(s.status || 'ACTIVE')}</td>
+            <td>
+                <div class="actions">
+                    <button class="btn btn-edit" onclick="editStudent(${s.id})">✏️ Edit</button>
+                    <button class="btn btn-danger" onclick="deleteStudent(${s.id})">🗑️ Del</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+let searchStudentTimer;
+async function searchStudents() {
+    clearTimeout(searchStudentTimer);
+    searchStudentTimer = setTimeout(async () => {
+        const kw = document.getElementById('studentSearch').value.trim();
+        try {
+            const data = kw
+                ? await apiFetch('/students/search?keyword=' + encodeURIComponent(kw))
+                : await apiFetch('/students');
+            renderStudentsTable(data);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }, 400);
+}
+
+// ==========================================
+// EMPLOYEES
+// ==========================================
+async function loadEmployees() {
+    try {
+        const [stats, employees] = await Promise.all([
+            apiFetch('/employees/stats'),
+            apiFetch('/employees')
+        ]);
+
+        document.getElementById('em-total').textContent = stats.total;
+        document.getElementById('em-active').textContent = stats.active;
+        document.getElementById('em-onLeave').textContent = stats.onLeave;
+        document.getElementById('em-inactive').textContent = stats.inactive;
+
+        renderEmployeesTable(employees);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function renderEmployeesTable(employees) {
+    const tbody = document.getElementById('employeesTable');
+    if (!employees.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">💼</div><p>No employees found. Add one!</p></div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = employees.map(e => `
+        <tr>
+            <td class="mono">#${e.id}</td>
+            <td class="name-cell">${e.firstName} ${e.lastName}</td>
+            <td class="mono">${e.email}</td>
+            <td>${e.department || '—'}</td>
+            <td>${e.position || '—'}</td>
+            <td class="mono">${e.salary ? '₹' + Number(e.salary).toLocaleString('en-IN') : '—'}</td>
+            <td>${badge(e.status || 'ACTIVE')}</td>
+            <td>
+                <div class="actions">
+                    <button class="btn btn-edit" onclick="editEmployee(${e.id})">✏️ Edit</button>
+                    <button class="btn btn-danger" onclick="deleteEmployee(${e.id})">🗑️ Del</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+let searchEmployeeTimer;
+async function searchEmployees() {
+    clearTimeout(searchEmployeeTimer);
+    searchEmployeeTimer = setTimeout(async () => {
+        const kw = document.getElementById('employeeSearch').value.trim();
+        try {
+            const data = kw
+                ? await apiFetch('/employees/search?keyword=' + encodeURIComponent(kw))
+                : await apiFetch('/employees');
+            renderEmployeesTable(data);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }, 400);
+}
+
+// ==========================================
+// MODAL MANAGEMENT
+// ==========================================
+function openAddModal() {
+    if (currentPage === 'students') {
+        clearStudentForm();
+        document.getElementById('studentModalTitle').textContent = 'Add New Student';
+        document.getElementById('studentModal').classList.add('open');
+    } else if (currentPage === 'employees') {
+        clearEmployeeForm();
+        document.getElementById('employeeModalTitle').textContent = 'Add New Employee';
+        document.getElementById('employeeModal').classList.add('open');
+    }
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+});
+
+// ==========================================
+// STUDENT CRUD OPERATIONS
+// ==========================================
+function clearStudentForm() {
+    ['id','firstName','lastName','email','phone','dob','course','year','gpa','status','enrollDate','address']
+        .forEach(f => {
+            const el = document.getElementById('s-' + f);
+            if (el) el.value = f === 'status' ? 'ACTIVE' : '';
+        });
+}
+
+async function editStudent(id) {
+    try {
+        const s = await apiFetch('/students/' + id);
+        document.getElementById('s-id').value = s.id;
+        document.getElementById('s-firstName').value = s.firstName || '';
+        document.getElementById('s-lastName').value = s.lastName || '';
+        document.getElementById('s-email').value = s.email || '';
+        document.getElementById('s-phone').value = s.phone || '';
+        document.getElementById('s-dob').value = s.dateOfBirth || '';
+        document.getElementById('s-course').value = s.course || '';
+        document.getElementById('s-year').value = s.year || '';
+        document.getElementById('s-gpa').value = s.gpa || '';
+        document.getElementById('s-status').value = s.status || 'ACTIVE';
+        document.getElementById('s-enrollDate').value = s.enrollmentDate || '';
+        document.getElementById('s-address').value = s.address || '';
+        document.getElementById('studentModalTitle').textContent = 'Edit Student #' + id;
+        document.getElementById('studentModal').classList.add('open');
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function saveStudent() {
+    const id = document.getElementById('s-id').value;
+    const data = {
+        firstName: document.getElementById('s-firstName').value,
+        lastName: document.getElementById('s-lastName').value,
+        email: document.getElementById('s-email').value,
+        phone: document.getElementById('s-phone').value,
+        dateOfBirth: document.getElementById('s-dob').value,
+        course: document.getElementById('s-course').value,
+        year: parseInt(document.getElementById('s-year').value) || null,
+        gpa: parseFloat(document.getElementById('s-gpa').value) || null,
+        status: document.getElementById('s-status').value,
+        enrollmentDate: document.getElementById('s-enrollDate').value,
+        address: document.getElementById('s-address').value
+    };
+
+    if (!data.firstName || !data.lastName || !data.email || !data.course) {
+        showToast('Please fill in all required fields (*)','error'); return;
+    }
+
+    try {
+        if (id) {
+            await apiFetch('/students/' + id, { method: 'PUT', body: JSON.stringify(data) });
+            showToast('Student updated successfully!');
+        } else {
+            await apiFetch('/students', { method: 'POST', body: JSON.stringify(data) });
+            showToast('Student added successfully!');
+        }
+        closeModal('studentModal');
+        loadStudents();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteStudent(id) {
+    if (!confirm('Are you sure you want to delete this student?')) return;
+    try {
+        await apiFetch('/students/' + id, { method: 'DELETE' });
+        showToast('Student deleted!');
+        loadStudents();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ==========================================
+// EMPLOYEE CRUD OPERATIONS
+// ==========================================
+function clearEmployeeForm() {
+    ['id','firstName','lastName','email','phone','dob','department','position','salary','status','joinDate','manager','address']
+        .forEach(f => {
+            const el = document.getElementById('e-' + f);
+            if (el) el.value = f === 'status' ? 'ACTIVE' : '';
+        });
+}
+
+async function editEmployee(id) {
+    try {
+        const e = await apiFetch('/employees/' + id);
+        document.getElementById('e-id').value = e.id;
+        document.getElementById('e-firstName').value = e.firstName || '';
+        document.getElementById('e-lastName').value = e.lastName || '';
+        document.getElementById('e-email').value = e.email || '';
+        document.getElementById('e-phone').value = e.phone || '';
+        document.getElementById('e-dob').value = e.dateOfBirth || '';
+        document.getElementById('e-department').value = e.department || '';
+        document.getElementById('e-position').value = e.position || '';
+        document.getElementById('e-salary').value = e.salary || '';
+        document.getElementById('e-status').value = e.status || 'ACTIVE';
+        document.getElementById('e-joinDate').value = e.joiningDate || '';
+        document.getElementById('e-manager').value = e.manager || '';
+        document.getElementById('e-address').value = e.address || '';
+        document.getElementById('employeeModalTitle').textContent = 'Edit Employee #' + id;
+        document.getElementById('employeeModal').classList.add('open');
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function saveEmployee() {
+    const id = document.getElementById('e-id').value;
+    const data = {
+        firstName: document.getElementById('e-firstName').value,
+        lastName: document.getElementById('e-lastName').value,
+        email: document.getElementById('e-email').value,
+        phone: document.getElementById('e-phone').value,
+        dateOfBirth: document.getElementById('e-dob').value,
+        department: document.getElementById('e-department').value,
+        position: document.getElementById('e-position').value,
+        salary: parseFloat(document.getElementById('e-salary').value) || null,
+        status: document.getElementById('e-status').value,
+        joiningDate: document.getElementById('e-joinDate').value,
+        manager: document.getElementById('e-manager').value,
+        address: document.getElementById('e-address').value
+    };
+
+    if (!data.firstName || !data.lastName || !data.email || !data.department || !data.position) {
+        showToast('Please fill in all required fields (*)','error'); return;
+    }
+
+    try {
+        if (id) {
+            await apiFetch('/employees/' + id, { method: 'PUT', body: JSON.stringify(data) });
+            showToast('Employee updated successfully!');
+        } else {
+            await apiFetch('/employees', { method: 'POST', body: JSON.stringify(data) });
+            showToast('Employee added successfully!');
+        }
+        closeModal('employeeModal');
+        loadEmployees();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteEmployee(id) {
+    if (!confirm('Are you sure you want to delete this employee?')) return;
+    try {
+        await apiFetch('/employees/' + id, { method: 'DELETE' });
+        showToast('Employee deleted!');
+        loadEmployees();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ==========================================
+// INIT — Load dashboard on startup
+// ==========================================
+loadDashboard();
+</script>
+</body>
+</html>
